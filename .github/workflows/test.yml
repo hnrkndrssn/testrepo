@@ -1,0 +1,41 @@
+name: Test
+
+on:
+  push: [ $default-branch ]
+
+jobs:
+
+  sign-msi:
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.continue-on-failure }}
+    if: ${{ steps.sign-package.outcome == 'failure' }}
+    strategy:
+      max-parallel: 1
+      matrix:
+        timestampurl: [
+          "http://timestamp.comodoca.com/rfc3161",
+          "http://timestamp.globalsign.com/tsa/r6advanced1", #https://support.globalsign.com/code-signing/code-signing-windows-7-8-and-10,
+          "http://timestamp.digicert.com", #https://knowledge.digicert.com/solution/SO912.html
+          "http://timestamp.apple.com/ts01", #https://gist.github.com/Manouchehri/fd754e402d98430243455713efada710
+          "http://tsa.starfieldtech.com",
+          "http://www.startssl.com/timestamp",
+          "http://timestamp.verisign.com/scripts/timstamp.dll",
+          "http://timestamp.globalsign.com/scripts/timestamp.dll"          
+        ]
+        exitcode: 0
+        continue-on-failure: true
+        include:
+          # if we get here and the signing fails, we want to fail the build
+          - timestampurl: "https://rfc3161timestamp.globalsign.com/advanced"
+            continue-on-failure: false
+            exitcode: 1
+    steps:
+    - name: Sign package
+      id: sign-package
+      run: |
+        echo "Signing package file"
+        exit ${{ matrix.exitcode }}
+
+    - name: Upload MSI
+      shell: bash
+      run: echo "goodbye"

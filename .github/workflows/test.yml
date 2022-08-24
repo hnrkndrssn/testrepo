@@ -11,7 +11,7 @@ jobs:
   sign-msi:
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.continue-on-failure }}
-    if: ${{ steps.sign-package.outcome == 'failure' }}
+    if: ${{ steps.sign-package.outputs.outcome == 'failure' }}
     strategy:
       max-parallel: 1
       matrix:
@@ -25,19 +25,19 @@ jobs:
           "http://timestamp.verisign.com/scripts/timstamp.dll",
           "http://timestamp.globalsign.com/scripts/timestamp.dll"          
         ]
-        exitcode: 0
+        outcome: 'success'
         continue-on-failure: true
         include:
           # if we get here and the signing fails, we want to fail the build
           - timestampurl: "https://rfc3161timestamp.globalsign.com/advanced"
             continue-on-failure: false
-            exitcode: 1
+            outcome: 'failure'
     steps:
     - name: Sign package
       id: sign-package
       run: |
         echo "Signing package file"
-        exit ${{ matrix.exitcode }}
+        echo "::set-output name=outcome::${{ matrix.outcome }}"
 
     - name: Upload MSI
       shell: bash

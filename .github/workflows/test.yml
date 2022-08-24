@@ -3,6 +3,8 @@ name: Test
 on:
   push: [ $default-branch ]
 
+workflow_dispatch:
+
 jobs:
 
   sign-msi:
